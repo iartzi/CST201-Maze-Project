@@ -1,4 +1,18 @@
 <?php
+/**
+ * Maze Project
+ * March, 2017
+ * Ronald Pearl
+ *
+ * This application creates a maze based upon data points stored in a file.
+ */
+
+
+/**
+ * Autoload class files
+ *
+ * @param $className
+ */
 function __autoload($className) {
     include "src/" . $className . '.php';
 }
