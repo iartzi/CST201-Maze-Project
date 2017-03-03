@@ -1,7 +1,5 @@
 <?php
 
-namespace src;
-
 class BuildBlocks {
 
     protected $openItem = ".";
@@ -30,7 +28,7 @@ class BuildBlocks {
         elseif ($type == 'finish')
             $letterToUse = $this->finishLetter;
 
-        // Iterates through the rows
+        // Iterates through the rows of the block
         for ($r = $row; $r <= 3; $r++) {
             // Now iterate through the columns...
             for ($c = $col; $c <= 3; $c++) {
@@ -46,8 +44,37 @@ class BuildBlocks {
         return $returnBlock;
     }
 
-}
+    /**
+     * Builds a wall or open block
+     *
+     * @param $type
+     *  - wall
+     *  - open
+     *
+     * @return array
+     */
+    public function buildSpaceBlock($type) {
+        $returnBlock = [];       // Create array instance
+        $blockItem = "";
+        $col = 1;
+        $row = 1;
 
-$blockBuilder = new BuildBlocks();
-var_dump( $blockBuilder->buildIndicatorBlock('start') );
-var_dump( $blockBuilder->buildIndicatorBlock('finish') );
+        // TODO: Could do some error checking...
+        if ($type == 'open')
+            $blockItem = $this->openItem;
+        elseif ($type == 'wall')
+            $blockItem = $this->wallItem;
+
+        // Iterates through the rows of the block
+        for ($r = $row; $r <= 3; $r++) {
+            // Now iterate through the columns...
+            for ($c = $col; $c <= 3; $c++) {
+                // Write to array
+                $returnBlock[$r][$c] = $blockItem;
+            }
+        }
+
+        return $returnBlock;
+    }
+
+}
