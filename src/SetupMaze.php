@@ -5,7 +5,7 @@
  *
  * Takes a Maze file and builds the data for the maze attributes.
  */
-class SetupMaze extends BuildBlocks {
+class SetupMaze {
 
     protected $mazeFile;                    // The maze filename passed to the constructor
 
