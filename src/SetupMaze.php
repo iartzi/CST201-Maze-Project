@@ -4,8 +4,6 @@
  * Class SetupMaze
  *
  * Takes a Maze file and builds the data for the maze attributes.
- *
- * @package mazeproject\build\src
  */
 class SetupMaze extends BuildBlocks {
 

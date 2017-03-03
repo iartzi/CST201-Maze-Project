@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Class BuildBlocks
+ *
+ * Builds teh block data for each of the block types.
+ */
 class BuildBlocks {
 
     protected $openItem = ".";
