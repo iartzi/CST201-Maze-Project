@@ -24,3 +24,5 @@ $mazeInfo = new SetupMaze(__DIR__ . "/assets/mazePoints.txt");
 // Use WriteMaze to use the maze information and
 // create a text file showing the maze.
 $writeMaze = new WriteMaze($mazeInfo->getMazeDimensions(), $mazeInfo->getMazeBlocks(), __DIR__ . "/assets/mazeDiagram.txt");
+
+echo "Maze Diagram Complete!";

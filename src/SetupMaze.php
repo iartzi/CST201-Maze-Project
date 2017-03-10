@@ -40,99 +40,94 @@ class SetupMaze {
     private function buildMazeData() {
         $blockBuilder = new BuildBlocks();
 
-        // Open the maze file
-        $mazeFileHandle = fopen($this->mazeFile, "r") or die("Unable to open maze file!");
+        // Read and set the maze points double linked list
+        $mazePoints = new BuildMazePoints($this->mazeFile);
+        $pointList = $mazePoints->getPointsList();
+        $pointList->rewind();       // Reset to beginning of list
 
-        // If file handler exists
-        if ($mazeFileHandle) {
-            // Read each line of the maze
-            while (!feof($mazeFileHandle)) {
-                $line = trim( fgets($mazeFileHandle, 4096) );
+        // Iterate through the list of points
+        while ($pointList->valid()) {
+            // Check if dotPointer exists
+            if (substr($pointList->current(), -1) == ".") {
+                $this->dotPointer++;
 
-                // Check if dotPointer exists
-                if (substr($line, -1) == ".") {
-                    $this->dotPointer++;
+                // Check which dotPointer you are at to see what needs to be done
+                // Pointer 1:   maze dimensions
+                // Pointer 2:   start
+                // Pointer 3:   finish
+                switch ($this->dotPointer) {
+                    case 1:
+                        // Remove the dot
+                        $line = str_replace(".", "", $pointList->current());
 
-                    // Check which dotPointer you are at to see what needs to be done
-                    // Pointer 1:   maze dimensions
-                    // Pointer 2:   start
-                    // Pointer 3:   finish
-                    switch ($this->dotPointer) {
-                        case 1:
-                            // Remove the dot
-                            $line = str_replace(".", "", $line);
+                        // Get array of numbers
+                        $dim = explode(", ", $line);
+                        $this->mazeDimensions['columns'] = $dim[0];
+                        $this->mazeDimensions['rows']    = $dim[1];
+                        break;
+                    case 2:
+                        // Remove the dot and parenthesis
+                        $line = str_replace([".", "(", ")"], [""], $pointList->current());
 
-                            // Get array of numbers
-                            $dim = explode(", ", $line);
-                            $this->mazeDimensions['columns'] = $dim[0];
-                            $this->mazeDimensions['rows']    = $dim[1];
-                            break;
-                        case 2:
-                            // Remove the dot and parenthesis
-                            $line = str_replace([".", "(", ")"], [""], $line);
+                        // Get array of numbers
+                        $start = explode(", ", $line);
+                        $this->mazeBlockArray[$start[0]][$start[1]]['id']    = 'start';
+                        $this->mazeBlockArray[$start[0]][$start[1]]['block'] = $blockBuilder->buildIndicatorBlock('start');
+                        break;
+                    case 3:
+                        // Remove the dot and parenthesis
+                        $line = str_replace([".", "(", ")"], [""], $pointList->current());
 
-                            // Get array of numbers
-                            $start                                               = explode(", ", $line);
-                            $this->mazeBlockArray[$start[0]][$start[1]]['id']    = 'start';
-                            $this->mazeBlockArray[$start[0]][$start[1]]['block'] = $blockBuilder->buildIndicatorBlock('start');
-                            break;
-                        case 3:
-                            // Remove the dot and parenthesis
-                            $line = str_replace([".", "(", ")"], [""], $line);
+                        // Get array of numbers
+                        $finish                                                = explode(", ", $line);
+                        $this->mazeBlockArray[$finish[0]][$finish[1]]['id']    = 'finish';
+                        $this->mazeBlockArray[$finish[0]][$finish[1]]['block'] = $blockBuilder->buildIndicatorBlock('finish');
+                        break;
+                    case 4:
+                        // Remove the dot
+                        $line = str_replace(".", "", $pointList->current());
 
-                            // Get array of numbers
-                            $finish                                                = explode(", ", $line);
-                            $this->mazeBlockArray[$finish[0]][$finish[1]]['id']    = 'finish';
-                            $this->mazeBlockArray[$finish[0]][$finish[1]]['block'] = $blockBuilder->buildIndicatorBlock('finish');
-                            break;
-                        case 4:
-                            // Remove the dot
-                            $line = str_replace(".", "", $line);
+                        // Get array of numbers
+                        $lastLine = explode("), (", $line);
 
-                            // Get array of numbers
-                            $lastLine = explode("), (", $line);
+                        foreach ($lastLine as &$val) {
+                            // Remove the parenthesis
+                            $val = str_replace(["(", ")"], [""], $val);
+                            $lastLineVals = explode(", ", $val);
+                            $this->mazeBlockArray[$lastLineVals[0]][$lastLineVals[1]]['id'] = 'wall';
+                            $this->mazeBlockArray[$lastLineVals[0]][$lastLineVals[1]]['block'] =
+                              $blockBuilder->buildSpaceBlock('wall');
+                        }
+                        unset($val);
 
-                            foreach ($lastLine as &$val) {
-                                // Remove the parenthesis
-                                $val                                                               = str_replace([
-                                  "(",
-                                  ")"
-                                ], [""], $val);
-                                $lastLineVals                                                      = explode(", ", $val);
-                                $this->mazeBlockArray[$lastLineVals[0]][$lastLineVals[1]]['id']    = 'wall';
-                                $this->mazeBlockArray[$lastLineVals[0]][$lastLineVals[1]]['block'] =
-                                  $blockBuilder->buildSpaceBlock('wall');
-                            }
-                            unset($val);
-
-                            break;
-                    }
-                } else {
-                    // Not a pointer line with a dot (.), so treat as regular wall blocks
-
-                    // Remove the dot
-                    $line = str_replace(".", "", $line);
-
-                    // Get array of numbers
-                    $thisLine = explode("), (", $line);
-
-                    foreach ($thisLine as &$val) {
-                        // Remove the parenthesis
-                        $val          = str_replace(["(", ")", "."], [""], $val);
-                        $thisLineVals = explode(", ", $val);
-
-                        // Remove the dot or parentheses from ending variable
-                        $thisLineVals[1] = str_replace([".", ","], "", $thisLineVals[1]);
-
-                        $this->mazeBlockArray[$thisLineVals[0]][$thisLineVals[1]]['id']    = 'wall';
-                        $this->mazeBlockArray[$thisLineVals[0]][$thisLineVals[1]]['block'] = $blockBuilder->buildSpaceBlock
-                        ('wall');
-                    }
-                    unset($val);
+                        break;
                 }
+            } else {
+                // Not a pointer line with a dot (.), so treat as regular wall blocks
+
+                // Remove the dot
+                $line = str_replace(".", "", $pointList->current());
+
+                // Get array of numbers
+                $thisLine = explode("), (", $line);
+
+                foreach ($thisLine as &$val) {
+                    // Remove the parenthesis
+                    $val          = str_replace(["(", ")", "."], [""], $val);
+                    $thisLineVals = explode(", ", $val);
+
+                    // Remove the dot or parentheses from ending variable
+                    $thisLineVals[1] = str_replace([".", ","], "", $thisLineVals[1]);
+
+                    $this->mazeBlockArray[$thisLineVals[0]][$thisLineVals[1]]['id']    = 'wall';
+                    $this->mazeBlockArray[$thisLineVals[0]][$thisLineVals[1]]['block'] = $blockBuilder->buildSpaceBlock
+                    ('wall');
+                }
+                unset($val);
             }
 
-            fclose($mazeFileHandle);
+            // Continue loop iteration of linked list
+            $pointList->next();
         }
 
         // Go through the array and check if a block exists. If not, set it as a space
